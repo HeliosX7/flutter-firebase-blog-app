@@ -16,20 +16,18 @@ For help getting started with Flutter, view our
 samples, guidance on mobile development, and a full API reference.
 
 ## Demo
-
+<p>
 <img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/login.jpg" width="280" height="550">
 <img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/register.jpg" width="280" height="550">
-<br>
-<br>
-<br>
-
+</p>
+<br><br><br>
+<p>
 <img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/post1.jpg" width="280" height="550">
 <img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/post2.jpg" width="280" height="550">
-<br>
-<br>
-<br>
-
+</p>
+<br><br><br>
+<p>
 <img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/feed1.jpg" width="280" height="550">
 <img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/feed2.jpg" width="280" height="550">
-
+</p>
 
