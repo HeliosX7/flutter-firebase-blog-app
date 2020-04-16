@@ -160,8 +160,7 @@ class _LoginState extends State<Login> {
           child: Container(
             width: 100,
             decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    colors: [Colors.cyan, Colors.blue]),
+                gradient: LinearGradient(colors: [Colors.cyan, Colors.blue]),
                 borderRadius: BorderRadius.circular(6.0),
                 boxShadow: [
                   BoxShadow(
@@ -198,8 +197,7 @@ class _LoginState extends State<Login> {
           child: Container(
             width: 100,
             decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    colors: [Colors.cyan, Colors.blue]),
+                gradient: LinearGradient(colors: [Colors.cyan, Colors.blue]),
                 borderRadius: BorderRadius.circular(6.0),
                 boxShadow: [
                   BoxShadow(

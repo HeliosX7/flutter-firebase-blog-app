@@ -20,33 +20,13 @@ class Feed extends StatefulWidget {
 class _FeedState extends State<Feed> {
   List<Post> postList = [];
   File _image;
+  DatabaseReference postRef =
+      FirebaseDatabase.instance.reference().child("posts");
 
   @override
   void initState() {
     super.initState();
-    DatabaseReference postRef =
-        FirebaseDatabase.instance.reference().child("posts");
-    postRef.once().then((DataSnapshot snap) {
-      var postKeys = snap.value.keys;
-      var postData = snap.value;
-
-      postList.clear();
-
-      for (var postKey in postKeys) {
-        Post posts = Post(
-          postData[postKey]['image'],
-          postData[postKey]['desc'],
-          postData[postKey]['date'],
-          postData[postKey]['time'],
-        );
-
-        postList.add(posts);
-
-        setState(() {
-          print('Length : $postList.length');
-        });
-      }
-    });
+    refreshPosts();
   }
 
   void logOutUser() async {
@@ -56,6 +36,92 @@ class _FeedState extends State<Feed> {
     } catch (e) {
       print("error :" + e.toString());
     }
+  }
+
+  void refreshPosts() {
+    postRef.once().then((DataSnapshot snap) {
+      var postKeys = snap.value.keys;
+      var postData = snap.value;
+
+      postList.clear();
+
+      for (var postKey in postKeys) {
+        print("Key : " + postKey);
+        Post posts = Post(
+          postData[postKey]['image'],
+          postData[postKey]['desc'],
+          postData[postKey]['date'],
+          postData[postKey]['time'],
+          postKey.toString(),
+        );
+
+        postList.add(posts);
+
+        setState(() {
+          print('Refreshed Length : $postList.length');
+        });
+      }
+    });
+  }
+
+  Future getDescEdited(String desc) async {
+    TextEditingController textEditingController =
+        TextEditingController(text: desc);
+    await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Row(
+              children: <Widget>[
+                Expanded(
+                    child: TextField(
+                  controller: textEditingController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: 'Edit Caption',
+                  ),
+                ))
+              ],
+            ),
+            actions: <Widget>[
+              FlatButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+              FlatButton(
+                  child: Text('Save'),
+                  onPressed: () {
+                    desc = textEditingController.text.toString();
+                    Navigator.pop(context);
+                  })
+            ],
+          );
+        });
+
+    return desc;
+  }
+
+  void updatePost(Post post, int index) async {
+    String descEdited = await getDescEdited(post.desc);
+    if (descEdited != null) {
+      post.desc = descEdited;
+    }
+    postRef.child(post.postKey).update(post.toJson()).then((_) {
+      print("Updated Post with ID : " + post.postKey);
+      setState(() {
+        postList[index].desc = post.desc;
+      });
+    });
+  }
+
+  void deletePost(Post post, int index) {
+    postRef.child(post.postKey).remove().then((_) {
+      print("Deleted Post with ID : " + post.postKey);
+      setState(() {
+        postList.removeAt(index);
+      });
+    });
   }
 
   @override
@@ -81,20 +147,14 @@ class _FeedState extends State<Feed> {
             : ListView.builder(
                 itemCount: postList.length,
                 itemBuilder: (_, index) {
-                  return postCard(
-                    postList[index].image,
-                    postList[index].desc,
-                    postList[index].date,
-                    postList[index].time,
-                  );
+                  return postCard(postList[index], index);
                 },
               ),
       ),
       bottomNavigationBar: BottomAppBar(
         child: Container(
           decoration: BoxDecoration(
-            gradient:
-                LinearGradient(colors: [Colors.cyan, Colors.blue]),
+            gradient: LinearGradient(colors: [Colors.cyan, Colors.blue]),
           ),
           child: Padding(
             padding: EdgeInsets.only(left: 20, right: 20, top: 5, bottom: 5),
@@ -105,22 +165,26 @@ class _FeedState extends State<Feed> {
                     tooltip: 'Refresh',
                     icon: Icon(Icons.refresh),
                     onPressed: () {
-                      setState(() {});
+                      refreshPosts();
                     }),
                 IconButton(
                     tooltip: 'Add post',
                     icon: Icon(Icons.add_circle),
                     onPressed: () async {
                       await getImage();
-                      if(_image != null){
-                        Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => NewPost(image: _image,)));
+                      if (_image != null) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => NewPost(
+                                      image: _image,
+                                    )));
                       }
                     }),
                 IconButton(
                     tooltip: 'Profile',
                     icon: Icon(Icons.person),
-                    onPressed: (){}),
+                    onPressed: () {}),
                 IconButton(
                     tooltip: 'Logout',
                     icon: Icon(Icons.call_missed_outgoing),
@@ -133,14 +197,14 @@ class _FeedState extends State<Feed> {
     );
   }
 
-  Future getImage() async{
+  Future getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.gallery);
     setState(() {
-      _image=image;
-    }); 
+      _image = image;
+    });
   }
 
-  Widget postCard(String image, String desc, String date, String time) {
+  Widget postCard(Post post, int index) {
     return Card(
       elevation: 10,
       margin: EdgeInsets.all(15),
@@ -153,14 +217,31 @@ class _FeedState extends State<Feed> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
-                  date,
+                  post.date,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.subtitle,
                 ),
                 Text(
-                  time,
+                  post.time,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.subtitle,
+                ),
+                DropdownButton(
+                  icon: Icon(Icons.more_vert),
+                  items: <String>['Edit', 'Delete']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String value) {
+                    if (value == 'Delete') {
+                      deletePost(post, index);
+                    } else if (value == 'Edit') {
+                      updatePost(post, index);
+                    }
+                  },
                 ),
               ],
             ),
@@ -168,7 +249,7 @@ class _FeedState extends State<Feed> {
               height: 10,
             ),
             Image.network(
-              image,
+              post.image,
               fit: BoxFit.contain,
               height: 300,
               width: 600,
@@ -177,7 +258,7 @@ class _FeedState extends State<Feed> {
               height: 10,
             ),
             Text(
-              desc,
+              post.desc,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.subhead,
             ),
