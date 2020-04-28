@@ -2,7 +2,7 @@
 
 A cross-platform mobile blog app using Flutter. It's a basic CRUD(create, read, update and delete) application with Firebase as the backend database. It allows authenticated users to use all CRUD features.
 
-<img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/stack.JPG" height="250">
+<img src="https://github.com/HeliosX7/flutter-firebase-blog-app/blob/master/images/stack.JPG" height="200">
 
 ## Getting Started
 
